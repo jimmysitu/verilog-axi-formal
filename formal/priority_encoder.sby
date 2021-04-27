@@ -1,0 +1,40 @@
+[tasks]
+cvr1   cvr  w1
+cvr1h  cvr  w1  high
+cvr4   cvr  w4
+cvr4h  cvr  w4  high
+cvr8   cvr  w8
+cvr8h  cvr  w8  high
+
+[options]
+~cvr: mode prove
+~cvr: depth 4
+cvr:  mode cover
+cvr:  depth 64
+
+[engines]
+smtbmc boolector
+
+
+[script]
+read -formal f_priority_encoder.v
+read -formal priority_encoder.v
+
+--pycode-begin--
+cmd = "hierarchy -top f_priority_encoder"
+if ("w1" in tags):
+	cmd += " -chparam  WIDTH 1"
+if ("w4" in tags):
+	cmd += " -chparam  WIDTH 4"
+if ("w8" in tags):
+	cmd += " -chparam  WIDTH 8"
+if ("high" in tags):
+    cmd += " -chparam LSB_PRIORITY HIGH"
+output(cmd)
+--pycode-end--
+prep -top f_priority_encoder
+
+[files]
+f_priority_encoder.v
+../verilog-axi/rtl/priority_encoder.v
+
