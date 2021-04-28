@@ -1,10 +1,17 @@
 [tasks]
 cvr1   cvr  w1
 cvr1h  cvr  w1  high
-cvr4   cvr  w4
-cvr4h  cvr  w4  high
-cvr8   cvr  w8
-cvr8h  cvr  w8  high
+cvr3   cvr  w3
+cvr3h  cvr  w3  high
+cvr6   cvr  w6
+cvr6h  cvr  w6  high
+
+prf1   prf  w1
+prf1h  prf  w1  high
+prf3   prf  w3
+prf3h  prf  w3  high
+prf6   prf  w6
+prf6h  prf  w6  high
 
 [options]
 ~cvr: mode prove
@@ -25,9 +32,9 @@ cmd = "hierarchy -top f_priority_encoder"
 if ("w1" in tags):
 	cmd += " -chparam  WIDTH 1"
 if ("w4" in tags):
-	cmd += " -chparam  WIDTH 4"
+	cmd += " -chparam  WIDTH 3"
 if ("w8" in tags):
-	cmd += " -chparam  WIDTH 8"
+	cmd += " -chparam  WIDTH 6"
 if ("high" in tags):
     cmd += " -chparam LSB_PRIORITY HIGH"
 output(cmd)
