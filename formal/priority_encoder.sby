@@ -31,9 +31,9 @@ read -formal priority_encoder.v
 cmd = "hierarchy -top f_priority_encoder"
 if ("w1" in tags):
 	cmd += " -chparam  WIDTH 1"
-if ("w4" in tags):
+if ("w3" in tags):
 	cmd += " -chparam  WIDTH 3"
-if ("w8" in tags):
+if ("w6" in tags):
 	cmd += " -chparam  WIDTH 6"
 if ("high" in tags):
     cmd += " -chparam LSB_PRIORITY HIGH"

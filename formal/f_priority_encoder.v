@@ -31,7 +31,7 @@ module f_priority_encoder #
 (
     parameter WIDTH = 4,
     // LSB priority: "LOW", "HIGH"
-    parameter LSB_PRIORITY = "LOW"
+    parameter LSB_PRIORITY = "HIGH"
 )
 (
     input  wire [WIDTH-1:0]         input_unencoded,
@@ -61,14 +61,21 @@ parameter W = 2**LEVELS;
 
     // Proof properties
     // output need to sync between encoded and unencoded
-    prf_sync: assert property(
-        (1<<output_encoded) == output_unencoded
-    );
-
     always @(*) begin
         if(input_unencoded)
-            prf_input: assert property(
-                (input_unencoded >> output_encoded) == 'b1
+            prf_sync: assert property(
+                (1<<output_encoded) == output_unencoded
+            );
+    end
+
+    always @(*) begin
+        if(input_unencoded && (LSB_PRIORITY== "LOW"))
+            prf_input_low: assert property(
+                (input_unencoded >> output_encoded) == WIDTH'b1
+            );
+        else if(input_unencoded && (LSB_PRIORITY== "HIGH"))
+            prf_input_high: assert property(
+                input_unencoded << ((WIDTH-1)-output_encoded) == {1'b1,{WIDTH-1{1'b0}}}
             );
     end
 
