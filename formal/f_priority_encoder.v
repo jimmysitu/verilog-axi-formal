@@ -56,7 +56,7 @@ parameter W = 2**LEVELS;
             .output_unencoded           (output_unencoded[WIDTH-1:0]),
             // Inputs
             .input_unencoded            (input_unencoded[WIDTH-1:0]));
-    
+
     // Assume properties
 
     // Proof properties
@@ -68,7 +68,7 @@ parameter W = 2**LEVELS;
     always @(*) begin
         if(input_unencoded)
             prf_input: assert property(
-                (1<<output_encoded) & input_unencoded
+                (input_unencoded >> output_encoded) == 'b1
             );
     end
 
