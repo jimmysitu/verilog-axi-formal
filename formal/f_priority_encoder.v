@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 */
 
-// Language: SystemVerilog 2012
+// Language: Verilog 2001
 
 /*
  * Formal properties of priority_encoder
@@ -86,6 +86,7 @@ parameter W = 2**LEVELS;
         (1<<output_encoded) == output_unencoded
     );
 
+    // Valid signal
     always @(*) begin
         if(input_unencoded)
             cvr_vld: cover property(
