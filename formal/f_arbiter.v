@@ -67,6 +67,13 @@ module f_arbiter #
             .request                    (request[PORTS-1:0]),
             .acknowledge                (acknowledge[PORTS-1:0]));
 
+
+    reg	f_past_valid;
+
+	initial	f_past_valid = 0;
+	always @(posedge clk)
+		f_past_valid <= 1;
+
     // Assume properties
 
     // Proof properties
