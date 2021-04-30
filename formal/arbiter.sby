@@ -1,0 +1,49 @@
+[tasks]
+cvr1   cvr  w1
+cvr1h  cvr  w1  high
+cvr3   cvr  w3
+cvr3h  cvr  w3  high
+cvr6   cvr  w6
+cvr6h  cvr  w6  high
+
+prf1   prf  w1
+prf1h  prf  w1  high
+prf3   prf  w3
+prf3h  prf  w3  high
+prf6   prf  w6
+prf6h  prf  w6  high
+
+[options]
+~cvr: mode prove
+~cvr: depth 4
+cvr:  mode cover
+cvr:  depth 64
+
+[engines]
+smtbmc boolector
+
+
+[script]
+read -formal f_arbiter.v
+read -formal arbiter.v
+read -formal priority_encoder.v
+
+--pycode-begin--
+cmd = "hierarchy -top f_arbiter"
+if ("w1" in tags):
+	cmd += " -chparam  PORTS 1"
+if ("w4" in tags):
+	cmd += " -chparam  PORTS 3"
+if ("w8" in tags):
+	cmd += " -chparam  PORTS 6"
+if ("high" in tags):
+    cmd += " -chparam LSB_PRIORITY HIGH"
+output(cmd)
+--pycode-end--
+prep -top f_arbiter
+
+[files]
+f_arbiter.v
+../verilog-axi/rtl/arbiter.v
+../verilog-axi/rtl/priority_encoder.v
+

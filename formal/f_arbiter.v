@@ -24,76 +24,74 @@ THE SOFTWARE.
 
 // Language: Verilog 2001
 
+
 /*
- * Formal properties of priority_encoder
+ * Formal properties of arbiter
  */
-module f_priority_encoder #
+module f_arbiter #
 (
-    parameter WIDTH = 4,
+    parameter PORTS = 4,
+    // arbitration type: "PRIORITY" or "ROUND_ROBIN"
+    parameter TYPE = "PRIORITY",
+    // block type: "NONE", "REQUEST", "ACKNOWLEDGE"
+    parameter BLOCK = "NONE",
     // LSB priority: "LOW", "HIGH"
     parameter LSB_PRIORITY = "LOW"
 )
 (
-    input  wire [WIDTH-1:0]         input_unencoded,
-    output wire                     output_valid,
-    output wire [$clog2(WIDTH)-1:0] output_encoded,
-    output wire [WIDTH-1:0]         output_unencoded
+    input  wire                     clk,
+    input  wire                     rst,
+
+    input  wire [PORTS-1:0]         request,
+    input  wire [PORTS-1:0]         acknowledge,
+
+    output wire [PORTS-1:0]         grant,
+    output wire                     grant_valid,
+    output wire [$clog2(PORTS)-1:0] grant_encoded
 );
 
-parameter LEVELS = WIDTH > 2 ? $clog2(WIDTH) : 1;
-parameter W = 2**LEVELS;
-
-    priority_encoder #(/*AUTOINSTPARAM*/
-                       // Parameters
-                       .WIDTH           (WIDTH),
-                       .LSB_PRIORITY    (LSB_PRIORITY),
-                       .LEVELS          (LEVELS),
-                       .W               (W))
+    arbiter #(/*AUTOINSTPARAM*/
+              // Parameters
+              .PORTS                    (PORTS),
+              .TYPE                     (TYPE),
+              .BLOCK                    (BLOCK),
+              .LSB_PRIORITY             (LSB_PRIORITY))
         dut(/*AUTOINST*/
             // Outputs
-            .output_valid               (output_valid),
-            .output_encoded             (output_encoded[$clog2(WIDTH)-1:0]),
-            .output_unencoded           (output_unencoded[WIDTH-1:0]),
+            .grant                      (grant[PORTS-1:0]),
+            .grant_valid                (grant_valid),
+            .grant_encoded              (grant_encoded[$clog2(PORTS)-1:0]),
             // Inputs
-            .input_unencoded            (input_unencoded[WIDTH-1:0]));
+            .clk                        (clk),
+            .rst                        (rst),
+            .request                    (request[PORTS-1:0]),
+            .acknowledge                (acknowledge[PORTS-1:0]));
 
     // Assume properties
 
     // Proof properties
-    // output need to sync between encoded and unencoded
-    prf_sync: assert property(
-        (1<<output_encoded) == output_unencoded
-    );
-
-    always @(*) begin
-        if(input_unencoded)
-            prf_input: assert property(
-                (input_unencoded >> output_encoded) == 'b1
-            );
-    end
-
 
     // Cover properties
     // output need to sync between encoded and unencoded
     cvr_onehot: cover property(
-        (1<<output_encoded) == output_unencoded
+        (1<<grant_encoded) == grant
     );
 
     // Valid signal
     always @(*) begin
-        if(input_unencoded)
+        if(request)
             cvr_vld: cover property(
-                (output_valid == 1'b1)
+                (grant_valid == 1'b1)
             );
         else
             cvr_invld: cover property(
-                (output_valid == 1'b0)
+                (grant_valid == 1'b0)
             );
     end
 
 endmodule
 
 // Local Variables:
-// verilog-library-files:("../verilog-axi/rtl/priority_encoder.v")
+// verilog-library-files:("../verilog-axi/rtl/arbiter.v")
 // End:
 
