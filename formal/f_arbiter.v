@@ -68,9 +68,9 @@ module f_arbiter #
             .acknowledge                (acknowledge[PORTS-1:0]));
 
 
-    reg	f_past_valid;
+    reg f_past_valid;
 
-	initial	f_past_valid = 0;
+	initial f_past_valid = 0;
 	always @(posedge clk)
 		f_past_valid <= 1;
 
