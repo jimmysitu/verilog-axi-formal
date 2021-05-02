@@ -23,56 +23,34 @@
 
 RTL       := ../verilog-axi/rtl
 FORMAL    := .
-HELPERS   := priority_encoder arbiter
-PRIORITY_ENCODER := priority_encoder
-ARBITER          := arbiter
 
-TESTS := $(HELPERS)
-all: $(TESTS)
+PRIORITY_ENCODER 		:= priority_encoder
+PRIORITY_ENCODER_CASES 	:= cvr1 cvr3 cvr6 prf1 prf3 prf6
+PRIORITY_ENCODER_CASES 	+= cvr1h cvr3h cvr6h prf1h prf3h prf6h
 
-$(PRIORITY_ENCODER): $(PRIORITY_ENCODER)_cvr1/PASS
-$(PRIORITY_ENCODER): $(PRIORITY_ENCODER)_cvr3/PASS
-$(PRIORITY_ENCODER): $(PRIORITY_ENCODER)_cvr6/PASS
+ARBITER         := arbiter
+ARBITER_CASES 	:= cvr1 cvr3 cvr6 prf1 prf3 prf6
+ARBITER_CASES 	+= cvr1h cvr3h cvr6h prf1h prf3h prf6h
+ARBITER_CASES 	+= cvr1r cvr3r cvr6r prf1r prf3r prf6r
 
-$(PRIORITY_ENCODER): $(PRIORITY_ENCODER)_prf1/PASS
-$(PRIORITY_ENCODER): $(PRIORITY_ENCODER)_prf3/PASS
-$(PRIORITY_ENCODER): $(PRIORITY_ENCODER)_prf6/PASS
+HELPERS := $(PRIORITY_ENCODER) $(ARBITER)
+MODULES := $(HELPERS)
 
-$(PRIORITY_ENCODER)_cvr1/PASS: $(RTL)/$(PRIORITY_ENCODER).v $(FORMAL)/f_$(PRIORITY_ENCODER).v $(PRIORITY_ENCODER).sby
-	sby -f $(PRIORITY_ENCODER).sby cvr1
-$(PRIORITY_ENCODER)_cvr3/PASS: $(RTL)/$(PRIORITY_ENCODER).v $(FORMAL)/f_$(PRIORITY_ENCODER).v $(PRIORITY_ENCODER).sby
-	sby -f $(PRIORITY_ENCODER).sby cvr3
-$(PRIORITY_ENCODER)_cvr6/PASS: $(RTL)/$(PRIORITY_ENCODER).v $(FORMAL)/f_$(PRIORITY_ENCODER).v $(PRIORITY_ENCODER).sby
-	sby -f $(PRIORITY_ENCODER).sby cvr6
+# $1 = module name, $2 = test case
+define run_sby =
+$1_$2/PASS: $(RTL)/$1.v $(FORMAL)/f_$1.v $1.sby
+	sby -f $1.sby $2
+endef
 
-$(PRIORITY_ENCODER)_prf1/PASS: $(RTL)/$(PRIORITY_ENCODER).v $(FORMAL)/f_$(PRIORITY_ENCODER).v $(PRIORITY_ENCODER).sby
-	sby -f $(PRIORITY_ENCODER).sby prf1
-$(PRIORITY_ENCODER)_prf3/PASS: $(RTL)/$(PRIORITY_ENCODER).v $(FORMAL)/f_$(PRIORITY_ENCODER).v $(PRIORITY_ENCODER).sby
-	sby -f $(PRIORITY_ENCODER).sby prf3
-$(PRIORITY_ENCODER)_prf6/PASS: $(RTL)/$(PRIORITY_ENCODER).v $(FORMAL)/f_$(PRIORITY_ENCODER).v $(PRIORITY_ENCODER).sby
-	sby -f $(PRIORITY_ENCODER).sby prf6
+all: $(MODULES)
 
-$(ARBITER): $(ARBITER)_cvr1/PASS
-$(ARBITER): $(ARBITER)_cvr3/PASS
-$(ARBITER): $(ARBITER)_cvr6/PASS
+$(foreach case,$(PRIORITY_ENCODER_CASES),$(eval $(call run_sby,$(PRIORITY_ENCODER),$(case))))
+$(PRIORITY_ENCODER): $(foreach case,$(PRIORITY_ENCODER_CASES),$(PRIORITY_ENCODER)_$(case)/PASS)
 
-$(ARBITER): $(ARBITER)_prf1/PASS
-$(ARBITER): $(ARBITER)_prf3/PASS
-$(ARBITER): $(ARBITER)_prf6/PASS
+$(foreach case,$(ARBITER_CASES),$(eval $(call run_sby,$(ARBITER),$(case))))
+$(ARBITER): $(foreach case,$(ARBITER_CASES),$(ARBITER)_$(case)/PASS)
 
-$(ARBITER)_cvr1/PASS: $(RTL)/$(ARBITER).v $(FORMAL)/f_$(ARBITER).v $(ARBITER).sby
-	sby -f $(ARBITER).sby cvr1
-$(ARBITER)_cvr3/PASS: $(RTL)/$(ARBITER).v $(FORMAL)/f_$(ARBITER).v $(ARBITER).sby
-	sby -f $(ARBITER).sby cvr3
-$(ARBITER)_cvr6/PASS: $(RTL)/$(ARBITER).v $(FORMAL)/f_$(ARBITER).v $(ARBITER).sby
-	sby -f $(ARBITER).sby cvr6
 
-$(ARBITER)_prf1/PASS: $(RTL)/$(ARBITER).v $(FORMAL)/f_$(ARBITER).v $(ARBITER).sby
-	sby -f $(ARBITER).sby prf1
-$(ARBITER)_prf3/PASS: $(RTL)/$(ARBITER).v $(FORMAL)/f_$(ARBITER).v $(ARBITER).sby
-	sby -f $(ARBITER).sby prf3
-$(ARBITER)_prf6/PASS: $(RTL)/$(ARBITER).v $(FORMAL)/f_$(ARBITER).v $(ARBITER).sby
-	sby -f $(ARBITER).sby prf6
 
 
 
