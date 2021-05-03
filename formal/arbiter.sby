@@ -1,23 +1,40 @@
 [tasks]
 cvr1   cvr  w1
+cvr1r  cvr  w1  req
+cvr1a  cvr  w1  ack
 cvr1h  cvr  w1  high
+
 cvr3   cvr  w3
+cvr3r  cvr  w3  req
+cvr3a  cvr  w3  ack
 cvr3h  cvr  w3  high
+
 cvr6   cvr  w6
+cvr6r  cvr  w6  req
+cvr6a  cvr  w6  ack
 cvr6h  cvr  w6  high
 
 prf1   prf  w1
+prf1r  prf  w1  req
+prf1a  prf  w1  ack
 prf1h  prf  w1  high
+
 prf3   prf  w3
+prf3r  prf  w3  req
+prf3a  prf  w3  ack
 prf3h  prf  w3  high
+
 prf6   prf  w6
+prf6r  prf  w6  req
+prf6a  prf  w6  ack
 prf6h  prf  w6  high
 
 [options]
 ~cvr: mode prove
-~cvr: depth 4
+~cvr: depth 16
 cvr:  mode cover
 cvr:  depth 64
+cvr:  append 1
 
 [engines]
 smtbmc boolector
@@ -29,15 +46,22 @@ read -formal arbiter.v
 read -formal priority_encoder.v
 
 --pycode-begin--
-cmd = "hierarchy -top f_arbiter"
-if ("w1" in tags):
-	cmd += " -chparam  PORTS 1"
-if ("w4" in tags):
-	cmd += " -chparam  PORTS 3"
-if ("w8" in tags):
-	cmd += " -chparam  PORTS 6"
+cmd = ''
 if ("high" in tags):
-    cmd += " -chparam LSB_PRIORITY HIGH"
+    cmd += 'chparam -set LSB_PRIORITY "HIGH" f_arbiter\n'
+
+if ("req" in tags):
+    cmd += 'chparam -set BLOCK "REQUEST" f_arbiter\n'
+if ("ack" in tags):
+    cmd += 'chparam -set BLOCK "ACKNOWLEDGE" f_arbiter\n'
+
+cmd += "hierarchy -top f_arbiter"
+if ("w1" in tags):
+        cmd += " -chparam  PORTS 1"
+if ("w3" in tags):
+        cmd += " -chparam  PORTS 3"
+if ("w6" in tags):
+        cmd += " -chparam  PORTS 6"
 output(cmd)
 --pycode-end--
 prep -top f_arbiter

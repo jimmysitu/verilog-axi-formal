@@ -31,7 +31,7 @@ module f_priority_encoder #
 (
     parameter WIDTH = 4,
     // LSB priority: "LOW", "HIGH"
-    parameter LSB_PRIORITY = "HIGH"
+    parameter LSB_PRIORITY = "LOW"
 )
 (
     input  wire [WIDTH-1:0]         input_unencoded,

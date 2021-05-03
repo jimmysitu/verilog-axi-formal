@@ -32,6 +32,7 @@ ARBITER         := arbiter
 ARBITER_CASES 	:= cvr1 cvr3 cvr6 prf1 prf3 prf6
 ARBITER_CASES 	+= cvr1h cvr3h cvr6h prf1h prf3h prf6h
 ARBITER_CASES 	+= cvr1r cvr3r cvr6r prf1r prf3r prf6r
+ARBITER_CASES 	+= cvr1a cvr3a cvr6a prf1a prf3a prf6a
 
 HELPERS := $(PRIORITY_ENCODER) $(ARBITER)
 MODULES := $(HELPERS)

@@ -28,15 +28,16 @@ read -formal priority_encoder.v
 read -formal f_priority_encoder.v
 
 --pycode-begin--
+cmd = ''
 if ("high" in tags):
-    cmd = 'chparam -set LSB_PRIORITY "HIGH"\n'
+    cmd += 'chparam -set LSB_PRIORITY "HIGH"\n'
 cmd += "hierarchy -top f_priority_encoder"
 if ("w1" in tags):
-	cmd += " -chparam  WIDTH 1"
+        cmd += " -chparam  WIDTH 1"
 if ("w3" in tags):
-	cmd += " -chparam  WIDTH 3"
+        cmd += " -chparam  WIDTH 3"
 if ("w6" in tags):
-	cmd += " -chparam  WIDTH 6"
+        cmd += " -chparam  WIDTH 6"
 output(cmd)
 --pycode-end--
 prep -top f_priority_encoder
