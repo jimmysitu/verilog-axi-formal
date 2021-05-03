@@ -1,0 +1,49 @@
+[tasks]
+cvr32  cvr  w32
+cvr64  cvr  w64
+
+prf32  prf  w32
+prf64  prf  w64
+
+[options]
+~cvr: mode prove
+~cvr: depth 64
+cvr:  mode cover
+cvr:  depth 64
+cvr:  append 1
+
+[engines]
+smtbmc boolector
+
+
+[script]
+read -formal f_axil_register.v
+read -formal f_axil_master.v
+read -formal f_axil_slave.v
+read -formal axil_register.v
+read -formal axil_register_rd.v
+read -formal axil_register_wr.v
+
+--pycode-begin--
+cmd = ''
+
+cmd += "hierarchy -top f_axil_register"
+if ("w32" in tags):
+        cmd += " -chparam  DATA_WIDTH 32"
+        cmd += " -chparam  ADDR_WIDTH 32"
+if ("w64" in tags):
+        cmd += " -chparam  DATA_WIDTH 64"
+        cmd += " -chparam  ADDR_WIDTH 64"
+output(cmd)
+--pycode-end--
+prep -top f_axil_register
+
+[files]
+f_axil_register.v
+f_axil_master.v
+f_axil_slave.v
+../verilog-axi/rtl/axil_register.v
+../verilog-axi/rtl/axil_register_rd.v
+../verilog-axi/rtl/axil_register_wr.v
+
+

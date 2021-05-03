@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 */
 
-// Language: Verilog 2001
+// Language: Verilog 2005
 
 
 /*
