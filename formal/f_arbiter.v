@@ -129,8 +129,7 @@ module f_arbiter #
                 if(!$past(rst) && f_past_valid) begin
                     if($past(grant_valid) && ($past(request) & $past(grant)))
                         prf_blk_req: assert property(
-                            grant_valid == 1'b1 &
-                            $past(grant_encoded) == grant_encoded
+                            grant_valid == 1'b1 && $stable(grant_encoded)
                         );
                 end
             end
@@ -139,8 +138,7 @@ module f_arbiter #
                 if(!$past(rst) && f_past_valid) begin
                     if($past(grant_valid) && !($past(acknowledge) & $past(grant)))
                         prf_blk_ack: assert property(
-                            grant_valid == 1'b1 &
-                            $past(grant_encoded) == grant_encoded
+                            grant_valid == 1'b1 && $stable(grant_encoded)
                         );
                 end
             end
@@ -193,8 +191,7 @@ module f_arbiter #
                 if(!$past(rst) && f_past_valid) begin
                     if($past(grant_valid) && ($past(request) & $past(grant)))
                         cvr_blk_req: cover property(
-                            grant_valid == 1'b1 &
-                            $past(grant_encoded) == grant_encoded
+                            grant_valid == 1'b1 && $stable(grant_encoded)
                         );
                 end
             end
@@ -203,8 +200,7 @@ module f_arbiter #
                 if(!$past(rst) && f_past_valid) begin
                     if($past(grant_valid) && !($past(acknowledge) & $past(grant)))
                         cvr_blk_ack: cover property(
-                            grant_valid == 1'b1 &
-                            $past(grant_encoded) == grant_encoded
+                            grant_valid == 1'b1 && $stable(grant_encoded)
                         );
                 end
             end
