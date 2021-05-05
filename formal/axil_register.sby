@@ -1,13 +1,23 @@
 [tasks]
-cvr32  cvr  w32
-cvr64  cvr  w64
+cvr32       cvr     w32     r0
+cvr32r1     cvr     w32     r1
+cvr32r2     cvr     w32     r2
 
-prf32  prf  w32
-prf64  prf  w64
+cvr64       cvr     w64     r0
+cvr64r1     cvr     w64     r1
+cvr64r2     cvr     w64     r2
+
+prf32       prf     w32     r0
+prf32r1     prf     w32     r1
+prf32r2     prf     w32     r2
+
+prf64       prf     w64     r0
+prf64r1     prf     w64     r1
+prf64r2     prf     w64     r2
 
 [options]
 ~cvr: mode prove
-~cvr: depth 64
+~cvr: depth 16
 cvr:  mode cover
 cvr:  depth 64
 cvr:  append 1
@@ -31,9 +41,23 @@ cmd += "hierarchy -top f_axil_register"
 if ("w32" in tags):
         cmd += " -chparam  DATA_WIDTH 32"
         cmd += " -chparam  ADDR_WIDTH 32"
-if ("w64" in tags):
+elif ("w64" in tags):
         cmd += " -chparam  DATA_WIDTH 64"
         cmd += " -chparam  ADDR_WIDTH 64"
+
+if ("r0" in tags):
+        cmd += " -chparam  AW_REG_TYPE 0 -chparam W_REG_TYPE 0"
+        cmd += " -chparam  B_REG_TYPE 0"
+        cmd += " -chparam  AR_REG_TYPE 0 -chparam R_REG_TYPE 0"
+elif ("r1" in tags):
+        cmd += " -chparam  AW_REG_TYPE 1 -chparam W_REG_TYPE 1"
+        cmd += " -chparam  B_REG_TYPE 1"
+        cmd += " -chparam  AR_REG_TYPE 1 -chparam R_REG_TYPE 1"
+elif ("r2" in tags):
+        cmd += " -chparam  AW_REG_TYPE 2 -chparam W_REG_TYPE 2"
+        cmd += " -chparam  B_REG_TYPE 2"
+        cmd += " -chparam  AR_REG_TYPE 2 -chparam R_REG_TYPE 2"
+
 output(cmd)
 --pycode-end--
 prep -top f_axil_register
