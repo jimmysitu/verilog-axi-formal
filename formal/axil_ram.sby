@@ -1,0 +1,46 @@
+[tasks]
+cvr32       cvr     w32     r0
+
+cvr64       cvr     w64     r0
+
+prf32       prf     w32     r0
+
+prf64       prf     w64     r0
+
+[options]
+~cvr: mode prove
+~cvr: depth 16
+cvr:  mode cover
+cvr:  depth 64
+cvr:  append 1
+
+[engines]
+smtbmc boolector
+
+
+[script]
+read -formal f_axil_ram.v
+read -formal f_axil_slave.v
+read -formal axil_ram.v
+
+--pycode-begin--
+cmd = ''
+
+cmd += "hierarchy -top f_axil_ram"
+if ("w32" in tags):
+        cmd += " -chparam  DATA_WIDTH 32"
+        cmd += " -chparam  ADDR_WIDTH 8"
+elif ("w64" in tags):
+        cmd += " -chparam  DATA_WIDTH 64"
+        cmd += " -chparam  ADDR_WIDTH 8"
+
+output(cmd)
+--pycode-end--
+prep -top f_axil_ram
+
+[files]
+f_axil_ram.v
+f_axil_slave.v
+../verilog-axi/rtl/axil_ram.v
+
+
