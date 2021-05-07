@@ -164,12 +164,12 @@ module f_axil_master #
                     (m_axil_rvalid) && $stable(m_axil_rdata) && $stable(m_axil_rresp));
             end
 
-            // Assume no ready valid when almost reach OUTSTAND_MAX
-            if(f_axil_m_aw_outstanding >= (OUTSTAND_MAX-2))
+            // Assume no ready assert when almost reach OUTSTAND_MAX
+            if(f_axil_m_aw_outstanding == (OUTSTAND_MAX-2))
                 assume property(!m_axil_awready);
-            if(f_axil_m_w_outstanding >= (OUTSTAND_MAX-2))
+            if(f_axil_m_w_outstanding == (OUTSTAND_MAX-2))
                 assume property(!m_axil_wready);
-            if(f_axil_m_ar_outstanding >= (OUTSTAND_MAX-2))
+            if(f_axil_m_ar_outstanding == (OUTSTAND_MAX-2))
                 assume property(!m_axil_arready);
 
         end
@@ -178,9 +178,9 @@ module f_axil_master #
     // Assume outstanding cycles never overflow
     always @(posedge clk) begin
         if(!$past(rst) && f_past_valid) begin
-            assume property(f_axil_m_aw_outstanding <= (OUTSTAND_MAX-1));
-            assume property(f_axil_m_w_outstanding  <= (OUTSTAND_MAX-1));
-            assume property(f_axil_m_ar_outstanding <= (OUTSTAND_MAX-1));
+            assume property(f_axil_m_aw_outstanding < (OUTSTAND_MAX-1));
+            assume property(f_axil_m_w_outstanding  < (OUTSTAND_MAX-1));
+            assume property(f_axil_m_ar_outstanding < (OUTSTAND_MAX-1));
         end
     end
 

@@ -163,11 +163,11 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 //        end
 //    endgenerate
 
-    reg [$clog2(OUTSTAND_MAX)-1:0] f_aw_buffered;
-    reg [$clog2(OUTSTAND_MAX)-1:0] f_w_buffered;
-    reg [$clog2(OUTSTAND_MAX)-1:0] f_b_buffered;
-    reg [$clog2(OUTSTAND_MAX)-1:0] f_ar_buffered;
-    reg [$clog2(OUTSTAND_MAX)-1:0] f_r_buffered;
+    reg [$clog2(OUTSTAND_MAX):0] f_aw_buffered;
+    reg [$clog2(OUTSTAND_MAX):0] f_w_buffered;
+    reg [$clog2(OUTSTAND_MAX):0] f_b_buffered;
+    reg [$clog2(OUTSTAND_MAX):0] f_ar_buffered;
+    reg [$clog2(OUTSTAND_MAX):0] f_r_buffered;
 
     always @(posedge clk) begin
         if(rst)begin
@@ -179,7 +179,7 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
         end else if(!$past(rst) && f_past_valid) begin
             // AW Channel
             if(AW_REG_TYPE>=1) begin
-               if((s_axil_awvalid && s_axil_awready) || !s_axil_awready)
+               if(!s_axil_awready)
                    f_aw_buffered <= 1'b1;
                else
                    f_aw_buffered <= 1'b0;
@@ -188,7 +188,7 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
             end
             // W Channel
             if(W_REG_TYPE>=1) begin
-                if((s_axil_wvalid && s_axil_wready) || !s_axil_wready)
+                if(!s_axil_wready)
                     f_w_buffered <= 1'b1;
                 else
                     f_w_buffered <= 1'b0;
@@ -197,7 +197,7 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
             end
             // B Channel
             if(B_REG_TYPE>=1) begin
-                if((m_axil_bvalid && m_axil_bready) || !m_axil_bready)
+                if(!m_axil_bready)
                     f_b_buffered <= 1'b1;
                 else
                     f_b_buffered <= 1'b0;
@@ -207,7 +207,7 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 
             // AR Channel
             if(AR_REG_TYPE>=1) begin
-                if(s_axil_arvalid && s_axil_arready)
+                if(!s_axil_arready)
                     f_ar_buffered <= 1'b1;
                 else
                     f_ar_buffered <= 1'b0;
@@ -216,7 +216,7 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
             end
             // R Channel
             if(R_REG_TYPE>=1) begin
-                if(m_axil_rvalid && m_axil_rready)
+                if(!m_axil_rready)
                     f_r_buffered <= 1'b1;
                 else
                     f_r_buffered <= 1'b0;
@@ -229,7 +229,15 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 // ================
 // Assume properties
 // ================
-
+    always @(posedge clk) begin
+        if(!rst && f_past_valid) begin
+            assume property(f_aw_buffered < 'd2);
+            assume property(f_w_buffered < 'd2);
+            assume property(f_b_buffered < 'd2);
+            assume property(f_ar_buffered < 'd2);
+            assume property(f_r_buffered < 'd2);
+        end
+    end
 // ================
 // Proof properties
 // ================
@@ -247,19 +255,19 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 //        end
 //    end
     always @(posedge clk) begin
-        if(!rst && f_past_valid) begin
+        if(!$past(rst) && !rst && f_past_valid) begin
             // Both side outstanding transaction should be synced
             dut_prf_aw_ostd: assert property(
-                f_axil_s_aw_outstanding ==
-                    (f_axil_m_aw_outstanding + f_aw_buffered + f_b_buffered)
+                {1'b0, $past(f_axil_s_aw_outstanding)} ==
+                    ({1'b0, $past(f_axil_m_aw_outstanding)} + f_aw_buffered + f_b_buffered)
             );
             dut_prf_w_ostd: assert property(
-                f_axil_s_w_outstanding ==
-                    (f_axil_m_w_outstanding + f_w_buffered + f_b_buffered)
+                {1'b0, $past(f_axil_s_w_outstanding)} ==
+                    ({1'b0, $past(f_axil_m_w_outstanding)} + f_w_buffered + f_b_buffered)
             );
             dut_prf_ar_ostd: assert property(
-                f_axil_s_ar_outstanding ==
-                    (f_axil_m_ar_outstanding + f_ar_buffered + f_r_buffered)
+                {1'b0, $past(f_axil_s_ar_outstanding)} ==
+                    ({1'b0, $past(f_axil_m_ar_outstanding)} + f_ar_buffered + f_r_buffered)
             );
         end
     end

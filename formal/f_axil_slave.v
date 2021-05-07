@@ -237,9 +237,9 @@ module f_axil_slave #
     // Proof outstanding cycles never overflow
     always @(posedge clk) begin
         if(!$past(rst) && f_past_valid) begin
-            prf_aw_ovf: assert property(f_axil_s_aw_outstanding <= (OUTSTAND_MAX-1));
-            prf_w_ovf:  assert property(f_axil_s_w_outstanding  <= (OUTSTAND_MAX-1));
-            prf_ar_ovf: assert property(f_axil_s_ar_outstanding <= (OUTSTAND_MAX-1));
+            prf_aw_ovf: assert property(f_axil_s_aw_outstanding < (OUTSTAND_MAX-1));
+            prf_w_ovf:  assert property(f_axil_s_w_outstanding  < (OUTSTAND_MAX-1));
+            prf_ar_ovf: assert property(f_axil_s_ar_outstanding < (OUTSTAND_MAX-1));
         end
     end
 
