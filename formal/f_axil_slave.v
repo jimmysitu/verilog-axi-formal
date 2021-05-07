@@ -170,11 +170,11 @@ module f_axil_slave #
 
             // Assume no request valid when almost reach OUTSTAND_MAX
             if(f_axil_s_aw_outstanding == (OUTSTAND_MAX-2))
-                assert property(!s_axil_awvalid);
+                assume property(!s_axil_awvalid);
             if(f_axil_s_w_outstanding == (OUTSTAND_MAX-2))
-                assert property(!s_axil_wvalid);
+                assume property(!s_axil_wvalid);
             if(f_axil_s_ar_outstanding == (OUTSTAND_MAX-2))
-                assert property(!s_axil_arvalid);
+                assume property(!s_axil_arvalid);
         end
     end
 

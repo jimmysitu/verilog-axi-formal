@@ -166,11 +166,11 @@ module f_axil_master #
 
             // Assume no ready valid when almost reach OUTSTAND_MAX
             if(f_axil_m_aw_outstanding >= (OUTSTAND_MAX-2))
-                assert property(!m_axil_awready);
+                assume property(!m_axil_awready);
             if(f_axil_m_w_outstanding >= (OUTSTAND_MAX-2))
-                assert property(!m_axil_wready);
+                assume property(!m_axil_wready);
             if(f_axil_m_ar_outstanding >= (OUTSTAND_MAX-2))
-                assert property(!m_axil_arready);
+                assume property(!m_axil_arready);
 
         end
     end

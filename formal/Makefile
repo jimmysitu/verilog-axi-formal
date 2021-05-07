@@ -34,8 +34,12 @@ ARBITER_CASES 	+= cvr1h cvr3h cvr6h prf1h prf3h prf6h
 ARBITER_CASES 	+= cvr1r cvr3r cvr6r prf1r prf3r prf6r
 ARBITER_CASES 	+= cvr1a cvr3a cvr6a prf1a prf3a prf6a
 
-HELPERS := $(PRIORITY_ENCODER) $(ARBITER)
-MODULES := $(HELPERS)
+AXIL_RAM       := axil_ram
+AXIL_RAM_CASES := cvr32 cvr64 prf32 prf64
+
+HELPERS = $(PRIORITY_ENCODER) $(ARBITER)
+AXIL_IPS = $(AXIL_RAM)
+MODULES = $(HELPERS) $(AXIL_IPS)
 
 # $1 = module name, $2 = test case
 define run_sby =
@@ -51,11 +55,11 @@ $(PRIORITY_ENCODER): $(foreach case,$(PRIORITY_ENCODER_CASES),$(PRIORITY_ENCODER
 $(foreach case,$(ARBITER_CASES),$(eval $(call run_sby,$(ARBITER),$(case))))
 $(ARBITER): $(foreach case,$(ARBITER_CASES),$(ARBITER)_$(case)/PASS)
 
-
-
-
+$(foreach case,$(AXIL_RAM_CASES),$(eval $(call run_sby,$(AXIL_RAM),$(case))))
+$(AXIL_RAM): $(foreach case,$(AXIL_RAM_CASES),$(AXIL_RAM)_$(case)/PASS)
 
 clean:
 	rm -rf $(addsuffix _*,$(HELPERS))
+	rm -rf $(addsuffix _*,$(AXIL_IPS))
 
 

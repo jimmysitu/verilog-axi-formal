@@ -123,24 +123,109 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 	always @(posedge clk)
 		f_past_valid <= 1;
 
+
+    // Notes. 
+    // Since Yosys does not support for hierarchcial connections yet,
+    // cannot get buffered info directly from DUT
+    //
+
+//    wire [$clog2(OUTSTAND_MAX)-1:0] f_aw_buffered;
+//    wire [$clog2(OUTSTAND_MAX)-1:0] f_w_buffered;
+//    wire [$clog2(OUTSTAND_MAX)-1:0] f_b_buffered;
+//    wire [$clog2(OUTSTAND_MAX)-1:0] f_ar_buffered;
+//    wire [$clog2(OUTSTAND_MAX)-1:0] f_r_buffered;
+//    generate
+//        if(AW_REG_TYPE>=1) begin
+//            assign f_aw_buffered = !rst && (s_axil_awready ? 'b0 : 'b1);
+//        end else begin
+//            assign f_aw_buffered = 'b0;
+//        end
+//        if(W_REG_TYPE>=1) begin
+//            assign f_w_buffered = !rst && (s_axil_wready ? 'b0 : 'b1);
+//        end else begin
+//            assign f_w_buffered = 'b0;
+//        end
+//        if(B_REG_TYPE>=1) begin
+//            assign f_b_buffered = !rst && (m_axil_bready ? 'b0 : 'b1);
+//        end else begin
+//            assign f_b_buffered = 'b0;
+//        end
+//
+//        if(AR_REG_TYPE>=1) begin
+//            assign f_ar_buffered = !rst && (s_axil_arready ? 'b0 : 'b1);
+//        end else begin
+//            assign f_ar_buffered = 'b0;
+//        end
+//        if(R_REG_TYPE>=1) begin
+//            assign f_r_buffered = !rst && (m_axil_rready ? 'b0 : 'b1);
+//        end else begin
+//            assign f_r_buffered = 'b0;
+//        end
+//    endgenerate
+
     reg [$clog2(OUTSTAND_MAX)-1:0] f_aw_buffered;
     reg [$clog2(OUTSTAND_MAX)-1:0] f_w_buffered;
     reg [$clog2(OUTSTAND_MAX)-1:0] f_b_buffered;
     reg [$clog2(OUTSTAND_MAX)-1:0] f_ar_buffered;
     reg [$clog2(OUTSTAND_MAX)-1:0] f_r_buffered;
 
-    // Notes. 
-    // Since Yosys does not support for hierarchcial connections yet,
-    // cannot get buffered info directly from DUT
     always @(posedge clk) begin
-        if(!$past(rst) && f_past_valid) begin
-            f_aw_buffered = 'b1;
-            f_w_buffered  = 'b1;
-            f_b_buffered  = 'b1;
-            f_ar_buffered = 'b1;
-            f_r_buffered  = 'b1;
-        end
-    end
+        if(rst)begin
+            f_aw_buffered <= 1'b0;
+            f_w_buffered <= 1'b0;
+            f_b_buffered <= 1'b0;
+            f_ar_buffered <= 1'b0;
+            f_r_buffered <= 1'b0;
+        end else if(!$past(rst) && f_past_valid) begin
+            // AW Channel
+            if(AW_REG_TYPE>=1) begin
+               if((s_axil_awvalid && s_axil_awready) || !s_axil_awready)
+                   f_aw_buffered <= 1'b1;
+               else
+                   f_aw_buffered <= 1'b0;
+            end else begin
+                f_aw_buffered <= 1'b0;
+            end
+            // W Channel
+            if(W_REG_TYPE>=1) begin
+                if((s_axil_wvalid && s_axil_wready) || !s_axil_wready)
+                    f_w_buffered <= 1'b1;
+                else
+                    f_w_buffered <= 1'b0;
+            end else begin
+                f_w_buffered <= 1'b0;
+            end
+            // B Channel
+            if(B_REG_TYPE>=1) begin
+                if((m_axil_bvalid && m_axil_bready) || !m_axil_bready)
+                    f_b_buffered <= 1'b1;
+                else
+                    f_b_buffered <= 1'b0;
+            end else begin
+                f_b_buffered <= 1'b0;
+            end
+
+            // AR Channel
+            if(AR_REG_TYPE>=1) begin
+                if(s_axil_arvalid && s_axil_arready)
+                    f_ar_buffered <= 1'b1;
+                else
+                    f_ar_buffered <= 1'b0;
+            end else begin
+                f_ar_buffered <= 1'b0;
+            end
+            // R Channel
+            if(R_REG_TYPE>=1) begin
+                if(m_axil_rvalid && m_axil_rready)
+                    f_r_buffered <= 1'b1;
+                else
+                    f_r_buffered <= 1'b0;
+            end else begin
+                f_r_buffered <= 1'b0;
+            end
+        end //if
+    end //always
+
 // ================
 // Assume properties
 // ================
@@ -148,44 +233,56 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 // ================
 // Proof properties
 // ================
-
 //    always @(posedge clk) begin
-//        if(!$past(rst) && f_past_valid) begin
-//            // Both side outstanding transaction should be synced
+//        if(!rst && f_past_valid) begin
 //            dut_prf_aw_ostd: assert property(
-//                f_axil_s_aw_outstanding ==
-//                    (f_axil_m_aw_outstanding + f_aw_buffered + f_b_buffered)
+//                f_axil_s_aw_outstanding >= f_axil_m_aw_outstanding
 //            );
 //            dut_prf_w_ostd: assert property(
-//                f_axil_s_w_outstanding ==
-//                    (f_axil_m_w_outstanding + f_w_buffered + f_b_buffered)
+//                f_axil_s_w_outstanding >= f_axil_m_w_outstanding
 //            );
 //            dut_prf_ar_ostd: assert property(
-//                f_axil_s_ar_outstanding ==
-//                    (f_axil_m_ar_outstanding + f_ar_buffered + f_r_buffered)
+//                f_axil_s_ar_outstanding >= f_axil_m_ar_outstanding
 //            );
 //        end
 //    end
+    always @(posedge clk) begin
+        if(!rst && f_past_valid) begin
+            // Both side outstanding transaction should be synced
+            dut_prf_aw_ostd: assert property(
+                f_axil_s_aw_outstanding ==
+                    (f_axil_m_aw_outstanding + f_aw_buffered + f_b_buffered)
+            );
+            dut_prf_w_ostd: assert property(
+                f_axil_s_w_outstanding ==
+                    (f_axil_m_w_outstanding + f_w_buffered + f_b_buffered)
+            );
+            dut_prf_ar_ostd: assert property(
+                f_axil_s_ar_outstanding ==
+                    (f_axil_m_ar_outstanding + f_ar_buffered + f_r_buffered)
+            );
+        end
+    end
 
 // ================
 // Cover properties
 // ================
-//    always @(posedge clk) begin
-//        if(!$past(rst) && f_past_valid) begin
-//            dut_cvr_aw_ostd: cover property(
-//                f_axil_s_aw_outstanding ==
-//                    (f_axil_m_aw_outstanding + f_aw_buffered + f_b_buffered)
-//            );
-//            dut_cvr_w_ostd: cover property(
-//                f_axil_s_w_outstanding ==
-//                    (f_axil_m_w_outstanding + f_w_buffered + f_b_buffered)
-//            );
-//            dut_cvr_ar_ostd: cover property(
-//                f_axil_s_ar_outstanding ==
-//                    (f_axil_m_ar_outstanding + f_ar_buffered + f_r_buffered)
-//            );
-//        end
-//    end
+    always @(posedge clk) begin
+        if(!$past(rst) && f_past_valid) begin
+            dut_cvr_aw_ostd: cover property(
+                f_axil_s_aw_outstanding ==
+                    (f_axil_m_aw_outstanding + f_aw_buffered + f_b_buffered)
+            );
+            dut_cvr_w_ostd: cover property(
+                f_axil_s_w_outstanding ==
+                    (f_axil_m_w_outstanding + f_w_buffered + f_b_buffered)
+            );
+            dut_cvr_ar_ostd: cover property(
+                f_axil_s_ar_outstanding ==
+                    (f_axil_m_ar_outstanding + f_ar_buffered + f_r_buffered)
+            );
+        end
+    end
 
 
 // ================

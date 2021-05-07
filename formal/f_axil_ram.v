@@ -77,6 +77,14 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 // End of automatics
 
 // ================
+// Help logic
+// ================
+
+// ================
+// Cover properties
+// ================
+
+// ================
 // Formal bench
 // ================
     axil_ram #(/*AUTOINSTPARAM*/
