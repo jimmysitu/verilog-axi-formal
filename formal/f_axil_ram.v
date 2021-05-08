@@ -79,6 +79,83 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 // ================
 // Help logic
 // ================
+    integer i, j;
+    (* anyconst *) wire [ADDR_WIDTH-1:0] f_addr;
+
+    reg [ADDR_WIDTH-1:0] f_axil_araddr;
+    reg [ADDR_WIDTH-1:0] f_axil_awaddr;
+
+    reg [DATA_WIDTH-1:0] f_mem[2 ** ADDR_WIDTH];
+    reg [DATA_WIDTH-1:0] f_data;
+
+    reg f_past_valid;
+    initial begin
+        f_past_valid <= 0;
+    end
+
+    always @(posedge clk) begin
+        f_past_valid <= 1;
+    end
+
+    // TODO: f_mem should link to dut.mem
+    initial begin
+        // two nested loops for smaller number of iterations per loop
+        // workaround for synthesizer complaints about large loop counts
+        for (i = 0; i < 2**VALID_ADDR_WIDTH; i = i + 2**(VALID_ADDR_WIDTH/2)) begin
+            for (j = i; j < i + 2**(VALID_ADDR_WIDTH/2); j = j + 1) begin
+                f_mem[j] = 0;
+            end
+        end
+    end
+
+    // Record read address
+    always @(posedge clk) begin
+        if(!rst & f_past_valid) begin
+            if(s_axil_arvalid && s_axil_arready)
+                f_axil_araddr <= s_axil_araddr;
+        end
+    end
+
+    // Record write address
+    always @(posedge clk) begin
+        if(!rst & f_past_valid) begin
+            if(s_axil_awvalid && s_axil_awready)
+                f_axil_awaddr <= s_axil_awaddr;
+        end
+    end
+
+    // Record write data
+    always @(posedge clk) begin
+        if(!rst & f_past_valid) begin
+            if(s_axil_wvalid && s_axil_wready && (f_axil_awaddr == f_addr)) begin
+                for (i = 0; i < WORD_WIDTH; i = i + 1) begin
+                    if (s_axil_wstrb[i]) begin
+                        f_data[WORD_SIZE*i +: WORD_SIZE] <= s_axil_wdata[WORD_SIZE*i +: WORD_SIZE];
+                    end
+                end
+            end
+        end
+    end
+
+// ================
+// Assume properties
+// ================
+    always @(*) begin
+        assume property(f_mem[f_addr] == f_data);
+    end
+
+// ================
+// Proof properties
+// ================
+
+    // Proof read data
+    always @(posedge clk) begin
+        if(!rst & f_past_valid) begin
+            if(s_axil_rvalid && s_axil_rready && (f_axil_araddr == f_addr))
+                dut_prv_rd: assert property(s_axil_rdata == f_data);
+        end
+    end
+
 
 // ================
 // Cover properties
