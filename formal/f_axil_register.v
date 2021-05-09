@@ -102,16 +102,19 @@ module f_axil_register #
     output wire                     m_axil_rready
 );
 
-localparam OUTSTAND_MAX = 16;
+localparam F_OSTD_MAX       = 16;
+localparam F_REQ_STALL_MAX  = 16;
+localparam F_RSP_STALL_MAX  = 16;
+localparam F_DELAY_MAX      = 16;
 
 /*AUTOWIRE*/
 // Beginning of automatic wires (for undeclared instantiated-module outputs)
-wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_m_ar_outstanding;// From f_master of f_axil_master.v
-wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_m_aw_outstanding;// From f_master of f_axil_master.v
-wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_m_w_outstanding;// From f_master of f_axil_master.v
-wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_ar_outstanding;// From f_slave of f_axil_slave.v
-wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_aw_outstanding;// From f_slave of f_axil_slave.v
-wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil_slave.v
+wire [$clog2(F_OSTD_MAX)-1:0] f_axil_m_ar_outstanding;// From f_master of f_axil_master.v
+wire [$clog2(F_OSTD_MAX)-1:0] f_axil_m_aw_outstanding;// From f_master of f_axil_master.v
+wire [$clog2(F_OSTD_MAX)-1:0] f_axil_m_w_outstanding;// From f_master of f_axil_master.v
+wire [$clog2(F_OSTD_MAX)-1:0] f_axil_s_ar_outstanding;// From f_slave of f_axil_slave.v
+wire [$clog2(F_OSTD_MAX)-1:0] f_axil_s_aw_outstanding;// From f_slave of f_axil_slave.v
+wire [$clog2(F_OSTD_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil_slave.v
 // End of automatics
 
 // ================
@@ -119,9 +122,9 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 // ================
     reg f_past_valid;
 
-	initial f_past_valid = 0;
-	always @(posedge clk)
-		f_past_valid <= 1;
+        initial f_past_valid = 0;
+        always @(posedge clk)
+                f_past_valid <= 1;
 
 
     // Notes. 
@@ -129,11 +132,11 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
     // cannot get buffered info directly from DUT
     //
 
-//    wire [$clog2(OUTSTAND_MAX)-1:0] f_aw_buffered;
-//    wire [$clog2(OUTSTAND_MAX)-1:0] f_w_buffered;
-//    wire [$clog2(OUTSTAND_MAX)-1:0] f_b_buffered;
-//    wire [$clog2(OUTSTAND_MAX)-1:0] f_ar_buffered;
-//    wire [$clog2(OUTSTAND_MAX)-1:0] f_r_buffered;
+//    wire [$clog2(F_OSTD_MAX)-1:0] f_aw_buffered;
+//    wire [$clog2(F_OSTD_MAX)-1:0] f_w_buffered;
+//    wire [$clog2(F_OSTD_MAX)-1:0] f_b_buffered;
+//    wire [$clog2(F_OSTD_MAX)-1:0] f_ar_buffered;
+//    wire [$clog2(F_OSTD_MAX)-1:0] f_r_buffered;
 //    generate
 //        if(AW_REG_TYPE>=1) begin
 //            assign f_aw_buffered = !rst && (s_axil_awready ? 'b0 : 'b1);
@@ -163,11 +166,11 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 //        end
 //    endgenerate
 
-    reg [$clog2(OUTSTAND_MAX):0] f_aw_buffered;
-    reg [$clog2(OUTSTAND_MAX):0] f_w_buffered;
-    reg [$clog2(OUTSTAND_MAX):0] f_b_buffered;
-    reg [$clog2(OUTSTAND_MAX):0] f_ar_buffered;
-    reg [$clog2(OUTSTAND_MAX):0] f_r_buffered;
+    reg [$clog2(F_OSTD_MAX):0] f_aw_buffered;
+    reg [$clog2(F_OSTD_MAX):0] f_w_buffered;
+    reg [$clog2(F_OSTD_MAX):0] f_b_buffered;
+    reg [$clog2(F_OSTD_MAX):0] f_ar_buffered;
+    reg [$clog2(F_OSTD_MAX):0] f_r_buffered;
 
     always @(posedge clk) begin
         if(rst)begin
@@ -241,36 +244,36 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
 // ================
 // Proof properties
 // ================
-//    always @(posedge clk) begin
-//        if(!rst && f_past_valid) begin
-//            dut_prf_aw_ostd: assert property(
-//                f_axil_s_aw_outstanding >= f_axil_m_aw_outstanding
-//            );
-//            dut_prf_w_ostd: assert property(
-//                f_axil_s_w_outstanding >= f_axil_m_w_outstanding
-//            );
-//            dut_prf_ar_ostd: assert property(
-//                f_axil_s_ar_outstanding >= f_axil_m_ar_outstanding
-//            );
-//        end
-//    end
     always @(posedge clk) begin
-        if(!$past(rst) && !rst && f_past_valid) begin
-            // Both side outstanding transaction should be synced
+        if(!rst && f_past_valid) begin
             dut_prf_aw_ostd: assert property(
-                {1'b0, $past(f_axil_s_aw_outstanding)} ==
-                    ({1'b0, $past(f_axil_m_aw_outstanding)} + f_aw_buffered + f_b_buffered)
+                f_axil_s_aw_outstanding >= f_axil_m_aw_outstanding
             );
             dut_prf_w_ostd: assert property(
-                {1'b0, $past(f_axil_s_w_outstanding)} ==
-                    ({1'b0, $past(f_axil_m_w_outstanding)} + f_w_buffered + f_b_buffered)
+                f_axil_s_w_outstanding >= f_axil_m_w_outstanding
             );
             dut_prf_ar_ostd: assert property(
-                {1'b0, $past(f_axil_s_ar_outstanding)} ==
-                    ({1'b0, $past(f_axil_m_ar_outstanding)} + f_ar_buffered + f_r_buffered)
+                f_axil_s_ar_outstanding >= f_axil_m_ar_outstanding
             );
         end
     end
+//    always @(posedge clk) begin
+//        if(!$past(rst) && !rst && f_past_valid) begin
+//            // Both side outstanding transaction should be synced
+//            dut_prf_aw_ostd: assert property(
+//                {1'b0, $past(f_axil_s_aw_outstanding)} ==
+//                    ({1'b0, $past(f_axil_m_aw_outstanding)} + f_aw_buffered + f_b_buffered)
+//            );
+//            dut_prf_w_ostd: assert property(
+//                {1'b0, $past(f_axil_s_w_outstanding)} ==
+//                    ({1'b0, $past(f_axil_m_w_outstanding)} + f_w_buffered + f_b_buffered)
+//            );
+//            dut_prf_ar_ostd: assert property(
+//                {1'b0, $past(f_axil_s_ar_outstanding)} ==
+//                    ({1'b0, $past(f_axil_m_ar_outstanding)} + f_ar_buffered + f_r_buffered)
+//            );
+//        end
+//    end
 
 // ================
 // Cover properties
@@ -355,12 +358,15 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
                     .DATA_WIDTH         (DATA_WIDTH),
                     .ADDR_WIDTH         (ADDR_WIDTH),
                     .STRB_WIDTH         (STRB_WIDTH),
-                    .OUTSTAND_MAX       (OUTSTAND_MAX))
+                    .F_OSTD_MAX         (F_OSTD_MAX),
+                    .F_REQ_STALL_MAX    (F_REQ_STALL_MAX),
+                    .F_RSP_STALL_MAX    (F_RSP_STALL_MAX),
+                    .F_DELAY_MAX        (F_DELAY_MAX))
         f_slave(/*AUTOINST*/
                 // Outputs
-                .f_axil_s_aw_outstanding(f_axil_s_aw_outstanding[$clog2(OUTSTAND_MAX)-1:0]),
-                .f_axil_s_w_outstanding (f_axil_s_w_outstanding[$clog2(OUTSTAND_MAX)-1:0]),
-                .f_axil_s_ar_outstanding(f_axil_s_ar_outstanding[$clog2(OUTSTAND_MAX)-1:0]),
+                .f_axil_s_aw_outstanding(f_axil_s_aw_outstanding[$clog2(F_OSTD_MAX)-1:0]),
+                .f_axil_s_w_outstanding (f_axil_s_w_outstanding[$clog2(F_OSTD_MAX)-1:0]),
+                .f_axil_s_ar_outstanding(f_axil_s_ar_outstanding[$clog2(F_OSTD_MAX)-1:0]),
                 // Inputs
                 .clk                    (clk),
                 .rst                    (rst),
@@ -389,12 +395,15 @@ wire [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil
                      .DATA_WIDTH        (DATA_WIDTH),
                      .ADDR_WIDTH        (ADDR_WIDTH),
                      .STRB_WIDTH        (STRB_WIDTH),
-                     .OUTSTAND_MAX      (OUTSTAND_MAX))
+                     .F_OSTD_MAX        (F_OSTD_MAX),
+                     .F_REQ_STALL_MAX   (F_REQ_STALL_MAX),
+                     .F_RSP_STALL_MAX   (F_RSP_STALL_MAX),
+                     .F_DELAY_MAX       (F_DELAY_MAX))
         f_master(/*AUTOINST*/
                  // Outputs
-                 .f_axil_m_aw_outstanding(f_axil_m_aw_outstanding[$clog2(OUTSTAND_MAX)-1:0]),
-                 .f_axil_m_w_outstanding(f_axil_m_w_outstanding[$clog2(OUTSTAND_MAX)-1:0]),
-                 .f_axil_m_ar_outstanding(f_axil_m_ar_outstanding[$clog2(OUTSTAND_MAX)-1:0]),
+                 .f_axil_m_aw_outstanding(f_axil_m_aw_outstanding[$clog2(F_OSTD_MAX)-1:0]),
+                 .f_axil_m_w_outstanding(f_axil_m_w_outstanding[$clog2(F_OSTD_MAX)-1:0]),
+                 .f_axil_m_ar_outstanding(f_axil_m_ar_outstanding[$clog2(F_OSTD_MAX)-1:0]),
                  // Inputs
                  .clk                   (clk),
                  .rst                   (rst),

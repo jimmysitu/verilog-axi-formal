@@ -37,7 +37,13 @@ module f_axil_slave #
     // Width of wstrb (width of data bus in words)
     parameter STRB_WIDTH = (DATA_WIDTH/8),
     // Maximum number of outstanding request
-    parameter OUTSTAND_MAX = 64
+    parameter F_OSTD_MAX = 64,
+    // Maximum clock number of AW/W/AR channel can be stalled
+    parameter F_REQ_STALL_MAX = 16,
+    // Maximum clock number of B/R channel can be stalled
+    parameter F_RSP_STALL_MAX = 16,
+    // Maximum clock number between request and response
+    parameter F_DELAY_MAX = 64
 )
 (
     input  wire                     clk,
@@ -67,15 +73,18 @@ module f_axil_slave #
     input  wire                     s_axil_rready,
 
     // Outputs for formal verification
-    output reg [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_aw_outstanding,
-    output reg [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_w_outstanding,
-    output reg [$clog2(OUTSTAND_MAX)-1:0] f_axil_s_ar_outstanding
+    output reg [$clog2(F_OSTD_MAX)-1:0] f_axil_s_aw_outstanding,
+    output reg [$clog2(F_OSTD_MAX)-1:0] f_axil_s_w_outstanding,
+    output reg [$clog2(F_OSTD_MAX)-1:0] f_axil_s_ar_outstanding
 
 );
 // ================
 // Help logic
 // ================
     reg f_past_valid;
+    reg [$clog2(F_REQ_STALL_MAX)-1:0] f_axil_aw_stall, f_axil_w_stall, f_axil_ar_stall;
+    reg [$clog2(F_RSP_STALL_MAX)-1:0] f_axil_b_stall, f_axil_r_stall;
+    reg [$clog2(F_DELAY_MAX)-1:0] f_axil_aw_delay, f_axil_w_delay, f_axil_ar_delay;
 
 	initial f_past_valid = 0;
 	always @(posedge clk)
@@ -125,6 +134,100 @@ module f_axil_slave #
             f_axil_s_ar_outstanding <= f_axil_s_ar_outstanding;
         end
     end
+    
+    // AW stall count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_aw_stall <= 'b0;
+        end else if(s_axil_awvalid && !s_axil_awready) begin
+            f_axil_aw_stall <= f_axil_aw_stall + 'b1;
+        end else begin
+            f_axil_aw_stall <= 'b0;
+        end
+    end
+
+    // W stall count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_w_stall <= 'b0;
+        end else if(s_axil_wvalid && !s_axil_wready) begin
+            f_axil_w_stall <= f_axil_w_stall + 'b1;
+        end else begin
+            f_axil_w_stall <= 'b0;
+        end
+    end
+    
+    // B stall count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_b_stall <= 'b0;
+        end else if(s_axil_bvalid && !s_axil_bready) begin
+            f_axil_b_stall <= f_axil_b_stall + 'b1;
+        end else begin
+            f_axil_b_stall <= 'b0;
+        end
+    end
+    
+    // AR Stall count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_ar_stall <= 'b0;
+        end else if(s_axil_arvalid && !s_axil_arready) begin
+            f_axil_ar_stall <= f_axil_ar_stall + 'b1;
+        end else begin
+            f_axil_ar_stall <= 'b0;
+        end
+    end
+    
+    // R Stall count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_r_stall <= 'b0;
+        end else if(s_axil_rvalid && !s_axil_rready) begin
+            f_axil_r_stall <= f_axil_r_stall + 'b1;
+        end else begin
+            f_axil_r_stall <= 'b0;
+        end
+    end
+
+    // AW-B delay count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_aw_delay <= 'b0;
+        end else if(f_axil_s_aw_outstanding > 0) begin
+            f_axil_aw_delay <= f_axil_aw_delay + 'b1;
+        end else if(s_axil_bvalid) begin
+            f_axil_aw_delay <= 'b0;
+        end else begin
+            f_axil_aw_delay <= f_axil_aw_delay;
+        end
+    end
+    
+    // W-B delay count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_w_delay <= 'b0;
+        end else if(f_axil_s_w_outstanding > 0) begin
+            f_axil_w_delay <= f_axil_w_delay + 'b1;
+        end else if(s_axil_bvalid) begin
+            f_axil_w_delay <= 'b0;
+        end else begin
+            f_axil_w_delay <= f_axil_w_delay;
+        end
+    end
+
+    // AR-R delay count
+    always @(posedge clk) begin
+        if(rst) begin
+            f_axil_ar_delay <= 'b0;
+        end else if(f_axil_s_w_outstanding > 0) begin
+            f_axil_ar_delay <= f_axil_ar_delay + 'b1;
+        end else if(s_axil_rvalid) begin
+            f_axil_ar_delay <= 'b0;
+        end else begin
+            f_axil_ar_delay <= f_axil_ar_delay;
+        end
+    end
 
 // ================
 // Assume properties
@@ -168,14 +271,20 @@ module f_axil_slave #
                     (s_axil_arvalid) && $stable(s_axil_araddr));
             end
 
-            // Assume no request valid when almost reach OUTSTAND_MAX
-            if(f_axil_s_aw_outstanding == (OUTSTAND_MAX-2))
+            // Assume no request valid when almost reach F_OSTD_MAX
+            if(f_axil_s_aw_outstanding == (F_OSTD_MAX-2))
                 assume property(!s_axil_awvalid);
-            if(f_axil_s_w_outstanding == (OUTSTAND_MAX-2))
+            if(f_axil_s_w_outstanding == (F_OSTD_MAX-2))
                 assume property(!s_axil_wvalid);
-            if(f_axil_s_ar_outstanding == (OUTSTAND_MAX-2))
+            if(f_axil_s_ar_outstanding == (F_OSTD_MAX-2))
                 assume property(!s_axil_arvalid);
         end
+    end
+
+    // Assume each rsp channel will never be stalled longer than STALL_MAX
+    always @(*) begin
+        assume property(f_axil_b_stall < F_RSP_STALL_MAX);
+        assume property(f_axil_r_stall < F_RSP_STALL_MAX);
     end
 
 // ================
@@ -237,13 +346,24 @@ module f_axil_slave #
     // Proof outstanding cycles never overflow
     always @(posedge clk) begin
         if(!$past(rst) && f_past_valid) begin
-            prf_aw_ovf: assert property(f_axil_s_aw_outstanding < (OUTSTAND_MAX-1));
-            prf_w_ovf:  assert property(f_axil_s_w_outstanding  < (OUTSTAND_MAX-1));
-            prf_ar_ovf: assert property(f_axil_s_ar_outstanding < (OUTSTAND_MAX-1));
+            prf_aw_ovf: assert property(f_axil_s_aw_outstanding < (F_OSTD_MAX-1));
+            prf_w_ovf:  assert property(f_axil_s_w_outstanding  < (F_OSTD_MAX-1));
+            prf_ar_ovf: assert property(f_axil_s_ar_outstanding < (F_OSTD_MAX-1));
         end
     end
 
-    // TODO: Proof each req will get rsp in DELAY_MAX
+    // Proof each req channel will never be stalled longer than STALL_MAX
+    always @(*) begin
+        prf_aw_stl: assert property(f_axil_aw_stall < F_REQ_STALL_MAX);
+        prf_w_stl:  assert property(f_axil_w_stall  < F_REQ_STALL_MAX);
+        prf_ar_stl: assert property(f_axil_ar_stall < F_REQ_STALL_MAX);
+    end
+    // Proof each req will get rsp in DELAY_MAX
+    always @(*) begin
+        prf_aw_dly: assert property(f_axil_aw_delay < F_DELAY_MAX);
+        prf_w_dly:  assert property(f_axil_w_delay  < F_DELAY_MAX);
+        prf_ar_dly: assert property(f_axil_ar_delay < F_DELAY_MAX);
+    end
 
 // ================
 // Cover properties
