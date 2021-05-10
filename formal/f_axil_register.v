@@ -166,97 +166,97 @@ wire [$clog2(F_OSTD_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil_s
 //        end
 //    endgenerate
 
-    reg [$clog2(F_OSTD_MAX):0] f_aw_buffered;
-    reg [$clog2(F_OSTD_MAX):0] f_w_buffered;
-    reg [$clog2(F_OSTD_MAX):0] f_b_buffered;
-    reg [$clog2(F_OSTD_MAX):0] f_ar_buffered;
-    reg [$clog2(F_OSTD_MAX):0] f_r_buffered;
-
-    always @(posedge clk) begin
-        if(rst)begin
-            f_aw_buffered <= 1'b0;
-            f_w_buffered <= 1'b0;
-            f_b_buffered <= 1'b0;
-            f_ar_buffered <= 1'b0;
-            f_r_buffered <= 1'b0;
-        end else if(!$past(rst) && f_past_valid) begin
-            // AW Channel
-            if(AW_REG_TYPE>=1) begin
-               if(!s_axil_awready)
-                   f_aw_buffered <= 1'b1;
-               else
-                   f_aw_buffered <= 1'b0;
-            end else begin
-                f_aw_buffered <= 1'b0;
-            end
-            // W Channel
-            if(W_REG_TYPE>=1) begin
-                if(!s_axil_wready)
-                    f_w_buffered <= 1'b1;
-                else
-                    f_w_buffered <= 1'b0;
-            end else begin
-                f_w_buffered <= 1'b0;
-            end
-            // B Channel
-            if(B_REG_TYPE>=1) begin
-                if(!m_axil_bready)
-                    f_b_buffered <= 1'b1;
-                else
-                    f_b_buffered <= 1'b0;
-            end else begin
-                f_b_buffered <= 1'b0;
-            end
-
-            // AR Channel
-            if(AR_REG_TYPE>=1) begin
-                if(!s_axil_arready)
-                    f_ar_buffered <= 1'b1;
-                else
-                    f_ar_buffered <= 1'b0;
-            end else begin
-                f_ar_buffered <= 1'b0;
-            end
-            // R Channel
-            if(R_REG_TYPE>=1) begin
-                if(!m_axil_rready)
-                    f_r_buffered <= 1'b1;
-                else
-                    f_r_buffered <= 1'b0;
-            end else begin
-                f_r_buffered <= 1'b0;
-            end
-        end //if
-    end //always
+//    reg [$clog2(F_OSTD_MAX):0] f_aw_buffered;
+//    reg [$clog2(F_OSTD_MAX):0] f_w_buffered;
+//    reg [$clog2(F_OSTD_MAX):0] f_b_buffered;
+//    reg [$clog2(F_OSTD_MAX):0] f_ar_buffered;
+//    reg [$clog2(F_OSTD_MAX):0] f_r_buffered;
+//
+//    always @(posedge clk) begin
+//        if(rst)begin
+//            f_aw_buffered <= 1'b0;
+//            f_w_buffered <= 1'b0;
+//            f_b_buffered <= 1'b0;
+//            f_ar_buffered <= 1'b0;
+//            f_r_buffered <= 1'b0;
+//        end else if(!$past(rst) && f_past_valid) begin
+//            // AW Channel
+//            if(AW_REG_TYPE>=1) begin
+//               if(!s_axil_awready)
+//                   f_aw_buffered <= 1'b1;
+//               else
+//                   f_aw_buffered <= 1'b0;
+//            end else begin
+//                f_aw_buffered <= 1'b0;
+//            end
+//            // W Channel
+//            if(W_REG_TYPE>=1) begin
+//                if(!s_axil_wready)
+//                    f_w_buffered <= 1'b1;
+//                else
+//                    f_w_buffered <= 1'b0;
+//            end else begin
+//                f_w_buffered <= 1'b0;
+//            end
+//            // B Channel
+//            if(B_REG_TYPE>=1) begin
+//                if(!m_axil_bready)
+//                    f_b_buffered <= 1'b1;
+//                else
+//                    f_b_buffered <= 1'b0;
+//            end else begin
+//                f_b_buffered <= 1'b0;
+//            end
+//
+//            // AR Channel
+//            if(AR_REG_TYPE>=1) begin
+//                if(!s_axil_arready)
+//                    f_ar_buffered <= 1'b1;
+//                else
+//                    f_ar_buffered <= 1'b0;
+//            end else begin
+//                f_ar_buffered <= 1'b0;
+//            end
+//            // R Channel
+//            if(R_REG_TYPE>=1) begin
+//                if(!m_axil_rready)
+//                    f_r_buffered <= 1'b1;
+//                else
+//                    f_r_buffered <= 1'b0;
+//            end else begin
+//                f_r_buffered <= 1'b0;
+//            end
+//        end //if
+//    end //always
 
 // ================
 // Assume properties
 // ================
-    always @(posedge clk) begin
-        if(!rst && f_past_valid) begin
-            assume property(f_aw_buffered < 'd2);
-            assume property(f_w_buffered < 'd2);
-            assume property(f_b_buffered < 'd2);
-            assume property(f_ar_buffered < 'd2);
-            assume property(f_r_buffered < 'd2);
-        end
-    end
+//    always @(posedge clk) begin
+//        if(!rst && f_past_valid) begin
+//            assume property(f_aw_buffered < 'd2);
+//            assume property(f_w_buffered < 'd2);
+//            assume property(f_b_buffered < 'd2);
+//            assume property(f_ar_buffered < 'd2);
+//            assume property(f_r_buffered < 'd2);
+//        end
+//    end
 // ================
 // Proof properties
 // ================
-    always @(posedge clk) begin
-        if(!rst && f_past_valid) begin
-            dut_prf_aw_ostd: assert property(
-                f_axil_s_aw_outstanding >= f_axil_m_aw_outstanding
-            );
-            dut_prf_w_ostd: assert property(
-                f_axil_s_w_outstanding >= f_axil_m_w_outstanding
-            );
-            dut_prf_ar_ostd: assert property(
-                f_axil_s_ar_outstanding >= f_axil_m_ar_outstanding
-            );
-        end
-    end
+//    always @(posedge clk) begin
+//        if(!rst && f_past_valid) begin
+//            dut_prf_aw_ostd: assert property(
+//                f_axil_s_aw_outstanding >= f_axil_m_aw_outstanding
+//            );
+//            dut_prf_w_ostd: assert property(
+//                f_axil_s_w_outstanding >= f_axil_m_w_outstanding
+//            );
+//            dut_prf_ar_ostd: assert property(
+//                f_axil_s_ar_outstanding >= f_axil_m_ar_outstanding
+//            );
+//        end
+//    end
 //    always @(posedge clk) begin
 //        if(!$past(rst) && !rst && f_past_valid) begin
 //            // Both side outstanding transaction should be synced
@@ -275,23 +275,49 @@ wire [$clog2(F_OSTD_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil_s
 //        end
 //    end
 
+    // Outstanding counts inside axil_register
+    // For slave side,  ostd = slave_intf ostd - buff rsp
+    // For master side, ostd = master_intf ostd + buff req
+    reg [$clog2(F_OSTD_MAX)-1:0] s_aw_ostd, s_w_ostd, s_ar_ostd;
+    reg [$clog2(F_OSTD_MAX)-1:0] m_aw_ostd, m_w_ostd, m_ar_ostd;
+
+    always @(*) begin
+        if(!rst && f_past_valid) begin
+            // With skid buffer
+            s_aw_ostd = f_axil_s_aw_outstanding - (s_axil_bvalid?'b1:'b0) - (m_axil_bready?'b0:'b1);
+            m_aw_ostd = f_axil_m_aw_outstanding + (m_axil_awvalid?'b1:'b0) + (s_axil_awready?'b0:'b1);
+
+            s_w_ostd = f_axil_s_w_outstanding - (s_axil_bvalid?'b1:'b0) - (m_axil_bready?'b0:'b1);
+            m_w_ostd = f_axil_m_w_outstanding + (m_axil_wvalid?'b1:'b0) + (s_axil_wready?'b0:'b1);
+
+            s_ar_ostd = f_axil_s_ar_outstanding - (s_axil_rvalid?'b1:'b0) - (m_axil_rready?'b0:'b1);
+            m_ar_ostd = f_axil_m_ar_outstanding + (m_axil_arvalid?'b1:'b0) + (s_axil_arready?'b0:'b1);
+        end else begin
+            s_aw_ostd = 'b0;
+            m_aw_ostd = 'b0;
+            s_w_ostd  = 'b0;
+            m_w_ostd  = 'b0;
+            s_ar_ostd = 'b0;
+            m_ar_ostd = 'b0;
+        end
+    end
+
+    always @(posedge clk) begin
+        if(!$past(rst) && f_past_valid) begin
+            dut_prf_aw_ostd: assert property(s_aw_ostd == m_aw_ostd);
+            dut_prf_w_ostd:  assert property(s_w_ostd  == m_w_ostd);
+            dut_prf_ar_ostd: assert property(s_ar_ostd == m_ar_ostd);
+        end
+    end
+
 // ================
 // Cover properties
 // ================
     always @(posedge clk) begin
         if(!$past(rst) && f_past_valid) begin
-            dut_cvr_aw_ostd: cover property(
-                f_axil_s_aw_outstanding ==
-                    (f_axil_m_aw_outstanding + f_aw_buffered + f_b_buffered)
-            );
-            dut_cvr_w_ostd: cover property(
-                f_axil_s_w_outstanding ==
-                    (f_axil_m_w_outstanding + f_w_buffered + f_b_buffered)
-            );
-            dut_cvr_ar_ostd: cover property(
-                f_axil_s_ar_outstanding ==
-                    (f_axil_m_ar_outstanding + f_ar_buffered + f_r_buffered)
-            );
+            dut_cvr_aw_ostd: cover property(s_aw_ostd == m_aw_ostd);
+            dut_cvr_w_ostd:  cover property(s_w_ostd  == m_w_ostd);
+            dut_cvr_ar_ostd: cover property(s_ar_ostd == m_ar_ostd);
         end
     end
 

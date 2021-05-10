@@ -43,7 +43,11 @@ module f_axil_slave #
     // Maximum clock number of B/R channel can be stalled
     parameter F_RSP_STALL_MAX = 16,
     // Maximum clock number between request and response
-    parameter F_DELAY_MAX = 64
+    parameter F_DELAY_MAX = 64,
+    // Only AR/R channel
+    parameter F_OPT_READ_ONLY = 1'b0,
+    // Only AW/W/B channel
+    parameter F_OPT_WRITE_ONLY = 1'b0
 )
 (
     input  wire                     clk,
@@ -134,7 +138,7 @@ module f_axil_slave #
             f_axil_s_ar_outstanding <= f_axil_s_ar_outstanding;
         end
     end
-    
+
     // AW stall count
     always @(posedge clk) begin
         if(rst) begin
@@ -156,7 +160,7 @@ module f_axil_slave #
             f_axil_w_stall <= 'b0;
         end
     end
-    
+
     // B stall count
     always @(posedge clk) begin
         if(rst) begin
@@ -167,7 +171,7 @@ module f_axil_slave #
             f_axil_b_stall <= 'b0;
         end
     end
-    
+
     // AR Stall count
     always @(posedge clk) begin
         if(rst) begin
@@ -178,7 +182,7 @@ module f_axil_slave #
             f_axil_ar_stall <= 'b0;
         end
     end
-    
+
     // R Stall count
     always @(posedge clk) begin
         if(rst) begin
@@ -202,7 +206,7 @@ module f_axil_slave #
             f_axil_aw_delay <= f_axil_aw_delay;
         end
     end
-    
+
     // W-B delay count
     always @(posedge clk) begin
         if(rst) begin
@@ -228,6 +232,32 @@ module f_axil_slave #
             f_axil_ar_delay <= f_axil_ar_delay;
         end
     end
+
+// ================
+// Options properties
+// ================
+    // F_OPT_WRITE_ONLY or F_OPT_READ_ONLY
+    generate if(F_OPT_WRITE_ONLY) begin
+        always @(*) begin
+            if(f_past_valid) begin
+                assume property(s_axil_arvalid == 1'b0);
+                assert property(s_axil_rvalid  == 1'b0);
+                assert property(f_axil_s_ar_outstanding == 'b0);
+            end
+        end
+    end endgenerate
+
+    generate if(F_OPT_READ_ONLY) begin
+        always @(*) begin
+            if(f_past_valid) begin
+                assume property(s_axil_awvalid == 1'b0);
+                assume property(s_axil_wvalid == 1'b0);
+                assert property(s_axil_bvalid  == 1'b0);
+                assert property(f_axil_s_aw_outstanding == 'b0);
+                assert property(f_axil_s_w_outstanding == 'b0);
+            end
+        end
+    end endgenerate
 
 // ================
 // Assume properties
@@ -369,40 +399,57 @@ module f_axil_slave #
 // Cover properties
 // ================
     // Cover valid properties
-    always @(posedge clk) begin
-        if(!$past(rst) && f_past_valid) begin
-            // AW channel
-            cvr_aw_vld: cover property(s_axil_awvalid && s_axil_awready);
-            // W channel
-            cvr_w_vld: cover property(s_axil_wvalid && s_axil_wready);
-            // B channel
-            cvr_b_vld: cover property(s_axil_bvalid && s_axil_bready);
-
-            // AR channel
-            cvr_ar_vld: cover property(s_axil_arvalid && s_axil_arready);
-            // R channel
-            cvr_r_vld: cover property(s_axil_rvalid && s_axil_arready);
+    generate if(!F_OPT_READ_ONLY) begin
+        always @(posedge clk) begin
+            if(!$past(rst) && f_past_valid) begin
+                // AW channel
+                cvr_aw_vld: cover property(s_axil_awvalid && s_axil_awready);
+                // W channel
+                cvr_w_vld: cover property(s_axil_wvalid && s_axil_wready);
+                // B channel
+                cvr_b_vld: cover property(s_axil_bvalid && s_axil_bready);
+            end
         end
-    end
+    end endgenerate
+
+    generate if(!F_OPT_WRITE_ONLY) begin
+        always @(posedge clk) begin
+            if(!$past(rst) && f_past_valid) begin
+                // AR channel
+                cvr_ar_vld: cover property(s_axil_arvalid && s_axil_arready);
+                // R channel
+                cvr_r_vld: cover property(s_axil_rvalid && s_axil_arready);
+            end
+        end
+    end endgenerate
 
     // Cover outstanding
-    always @(posedge clk) begin
-        if(!$past(rst) && f_past_valid) begin
-            if(s_axil_bvalid) begin
-                cvr_aw_ostd: cover property(
-                    f_axil_s_aw_outstanding > 0
-                );
-                cvr_w_ostd: cover property(
-                    f_axil_s_w_outstanding > 0
-                );
-            end
-            if(s_axil_rvalid) begin
-                cvr_ar_ostd: cover property(
-                    f_axil_s_ar_outstanding > 0
-                );
+    generate if(!F_OPT_READ_ONLY) begin
+        always @(posedge clk) begin
+            if(!$past(rst) && f_past_valid) begin
+                if(s_axil_bvalid) begin
+                    cvr_aw_ostd: cover property(
+                        f_axil_s_aw_outstanding > 0
+                    );
+                    cvr_w_ostd: cover property(
+                        f_axil_s_w_outstanding > 0
+                    );
+                end
             end
         end
-    end
+    end endgenerate
+
+    generate if(!F_OPT_WRITE_ONLY) begin
+        always @(posedge clk) begin
+            if(!$past(rst) && f_past_valid) begin
+                if(s_axil_rvalid) begin
+                    cvr_ar_ostd: cover property(
+                        f_axil_s_ar_outstanding > 0
+                    );
+                end
+            end
+        end
+    end endgenerate
 
 endmodule
 
