@@ -94,10 +94,10 @@ module f_axil_master #
 	always @(posedge clk)
 		f_past_valid <= 1;
 
+    // Outstanding count
     // AW channel
     wire aw_req = m_axil_awvalid && m_axil_awready && !rst;
     wire aw_rsp = m_axil_bvalid && m_axil_bready && !rst;
-    // Outstanding count
     always @(posedge clk) begin
         if(rst) begin
             f_axil_m_aw_outstanding <= 'b0;
@@ -318,7 +318,7 @@ module f_axil_master #
         end
     end
 
-    // Assume rsp sync with req
+    // Assume if there is a rsp, there must be a req
     always @(posedge clk) begin
         if(!$past(rst) && f_past_valid) begin
             if(m_axil_bvalid) begin

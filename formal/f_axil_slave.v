@@ -94,6 +94,7 @@ module f_axil_slave #
 	always @(posedge clk)
 		f_past_valid <= 1;
 
+    // Outstanding count
     // AW channel
     wire aw_req = s_axil_awvalid && s_axil_awready && !rst;
     wire aw_rsp = s_axil_bvalid && s_axil_bready && !rst;
@@ -354,7 +355,7 @@ module f_axil_slave #
         end
     end
 
-    // Proof rsp sync with req
+    // Proof when there is rsp there must be a req
     always @(posedge clk) begin
         if(!$past(rst) && f_past_valid) begin
             if(s_axil_bvalid) begin
@@ -388,6 +389,7 @@ module f_axil_slave #
         prf_w_stl:  assert property(f_axil_w_stall  < F_REQ_STALL_MAX);
         prf_ar_stl: assert property(f_axil_ar_stall < F_REQ_STALL_MAX);
     end
+
     // Proof each req will get rsp in DELAY_MAX
     always @(*) begin
         prf_aw_dly: assert property(f_axil_aw_delay < F_DELAY_MAX);

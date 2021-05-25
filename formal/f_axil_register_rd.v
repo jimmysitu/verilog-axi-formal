@@ -101,12 +101,11 @@ wire [$clog2(F_OSTD_MAX)-1:0] f_axil_s_w_outstanding;// From f_slave of f_axil_s
     // Notes.
     // Since Yosys does not support for hierarchcial connections yet,
     // cannot get buffered info directly from DUT
-    //
 
 
     // Outstanding counts inside axil_register
-    // For slave side,  ostd = slave_intf ostd - buff rsp
-    // For master side, ostd = master_intf ostd + buff req
+    // From the view of slave side,  ostd = slave_intf ostd - buff rsp
+    // From the veiw of master side, ostd = master_intf ostd + buff req
     reg [$clog2(F_OSTD_MAX)-1:0] s_ar_ostd;
     reg [$clog2(F_OSTD_MAX)-1:0] m_ar_ostd;
 
